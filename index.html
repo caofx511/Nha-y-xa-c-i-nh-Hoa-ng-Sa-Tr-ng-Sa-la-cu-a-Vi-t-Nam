@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thiên Ngưu - Nhảy Khẳng Định Chủ Quyền Biển Đông</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            background-color: #020617;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 bg-slate-950">
+
+    <div class="relative w-full max-w-lg flex flex-col items-center">
+        <!-- Header -->
+        <header class="text-center mb-2 z-10 w-full">
+            <h1 class="text-2xl sm:text-3xl font-black text-amber-400 tracking-wider uppercase drop-shadow-md">
+                THIÊN NGƯU: VẼ RANH GIỚI BIỂN
+            </h1>
+            <p class="text-xs sm:text-sm text-cyan-200 font-bold">
+                Nhảy qua từng đảo • Nối đường ranh giới • Cắm cờ chủ quyền!
+            </p>
+        </header>
+
+        <!-- Canvas Game -->
+        <div class="relative w-full flex justify-center items-center overflow-hidden rounded-2xl border-4 border-amber-500/70 shadow-2xl bg-sky-950 aspect-[3/4]">
+            <canvas id="gameCanvas" class="w-full h-full cursor-pointer"></canvas>
+
+            <!-- Màn Hình Bắt Đầu -->
+            <div id="startScreen" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+                <div class="w-24 h-24 mb-4 relative flex items-center justify-center bg-amber-500/20 rounded-full border-2 border-amber-400">
+                    <span class="text-6xl">🐃</span>
+                </div>
+                <h2 class="text-2xl font-black text-amber-300 mb-2 uppercase">
+                    SỨ MỆNH THIÊN NGƯU
+                </h2>
+                <p class="text-xs sm:text-sm text-gray-200 max-w-xs mb-6 leading-relaxed">
+                    Đẩy lực và canh góc nhảy để <b>Thiên Ngưu</b> đáp chính xác lên từng hòn đảo. Mỗi cú nhảy thành công sẽ <b>kéo đường ranh giới & cắm cờ Việt Nam</b>!
+                </p>
+                <button id="startBtn" class="px-8 py-3.5 bg-gradient-to-r from-red-600 to-amber-500 text-white font-black text-base rounded-full shadow-lg border-2 border-yellow-300">
+                    BẮT ĐẦU NHẢY (TAP / SPACE)
+                </button>
+            </div>
+
+            <!-- Màn Hình Thua (Rớt Biển) -->
+            <div id="gameOverScreen" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center z-30">
+                <div class="w-full max-w-sm bg-slate-900 border-2 border-red-500 rounded-2xl p-5 shadow-2xl">
+                    <h2 class="text-xl font-black text-red-400 mb-2 uppercase">
+                        RỚT XUỐNG BIỂN RỒI!
+                    </h2>
+                    <p class="text-xs text-amber-200 italic mb-4">Căn lại lực nhảy để Thiên Ngưu đáp chính xác lên đảo nhé!</p>
+                    <div class="bg-slate-800 p-3 rounded-xl mb-4 border border-amber-500/30">
+                        <p class="text-xs text-gray-300">Số Cột Mốc Đã Cắm:</p>
+                        <span id="finalScore" class="text-3xl font-black text-amber-400">0</span>
+                    </div>
+                    <button id="restartBtn" class="w-full py-3 bg-gradient-to-r from-amber-500 to-red-600 text-white font-black text-sm rounded-full border border-yellow-300">
+                        NHẢY LẠI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Màn Hình Chiến Thắng -->
+            <div id="victoryScreen" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center z-40">
+                <div class="w-full max-w-sm bg-gradient-to-b from-red-950 to-slate-900 border-4 border-yellow-400 rounded-2xl p-6 shadow-2xl flex flex-col items-center">
+                    <span class="text-5xl mb-2">🇻🇳</span>
+                    <h2 class="text-2xl font-black text-yellow-300 mb-1 uppercase">
+                        HOÀN THÀNH RANH GIỚI!
+                    </h2>
+                    <p class="text-xs font-bold text-red-300 uppercase mb-4">
+                        HOÀNG SA & TRƯỜNG SA LÀ CỦA VIỆT NAM
+                    </p>
+                    <p class="text-xs text-gray-200 mb-6">
+                        Thiên Ngưu đã nối liền toàn bộ ranh giới lãnh hải và cắm cờ chủ quyền tại tất cả các đảo!
+                    </p>
+                    <button id="victoryRestartBtn" class="w-full py-3 bg-gradient-to-r from-amber-500 to-red-600 text-white font-black text-sm rounded-full border border-yellow-300">
+                        CHƠI LẠI MÀN MỚI
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-3 text-xs text-cyan-300/80">
+            👉 Nhấn giữ (hoặc giữ phím Space) để tích lực, thả ra để Thiên Ngưu nhảy!
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const V_WIDTH = 480;
+        const V_HEIGHT = 640;
+        canvas.width = V_WIDTH;
+        canvas.height = V_HEIGHT;
+
+        // Đẩy độ cao Y gốc của Đảo lên trên (giá trị 220)
+        const BASE_ISLAND_Y = 220;
+
+        const ISLAND_NAMES = [
+            "Bờ Biển VN", "Đảo Hoàng Sa", "Đảo Song Tử Tây", 
+            "Đảo Nam Yết", "Đảo Sinh Tồn", "Đảo Trường Sa Lớn", 
+            "Đảo An Bang", "Đảo Sơn Ca"
+        ];
+
+        let gameState = 'START';
+        let score = 0;
+        let isCharging = false;
+        let chargePower = 0;
+        let linePoints = [];
+
+        // Thiên Ngưu
+        class Buffalo {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = 80;
+                this.y = BASE_ISLAND_Y - 20;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 18;
+                this.isJumping = false;
+                this.onIslandIndex = 0;
+            }
+
+            jump(power) {
+                this.vx = power * 0.18;
+                this.vy = -power * 0.28;
+                this.isJumping = true;
+            }
+
+            update() {
+                if (this.isJumping) {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += 0.45; // Trọng lực
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Thân xanh
+                ctx.fillStyle = '#1e3a8a';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Đôi cánh vàng
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.ellipse(-8, -10, 12, 6, -Math.PI/4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sừng
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(4, -10);
+                ctx.quadraticCurveTo(12, -20, 18, -15);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        // Bệ đảo
+        class Island {
+            constructor(x, y, width, name) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = V_HEIGHT - y; // Tự động kéo dài bệ đảo xuống tận đáy
+                this.name = name;
+                this.hasFlag = false;
+            }
+
+            draw() {
+                // Thân đảo
+                ctx.fillStyle = '#0f766e';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = '#14b8a6';
+                ctx.fillRect(this.x, this.y, this.width, 10);
+
+                // Tên đảo
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Montserrat, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, this.x + this.width / 2, this.y + 28);
+
+                // Cắm Cờ
+                if (this.hasFlag) {
+                    const fx = this.x + this.width / 2;
+                    const fy = this.y;
+
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(fx, fy);
+                    ctx.lineTo(fx, fy - 35);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(fx, fy - 35, 22, 14);
+                    ctx.fillStyle = '#facc15';
+                    ctx.font = '10px sans-serif';
+                    ctx.fillText('★', fx + 11, fy - 24);
+                }
+            }
+        }
+
+        const buffalo = new Buffalo();
+        let islands = [];
+
+        function initIslands() {
+            islands = [];
+            linePoints = [];
+            
+            islands.push(new Island(30, BASE_ISLAND_Y, 100, ISLAND_NAMES[0]));
+            islands[0].hasFlag = true;
+            linePoints.push({x: 80, y: BASE_ISLAND_Y});
+
+            let currentX = 180;
+            let currentY = BASE_ISLAND_Y;
+
+            for (let i = 1; i < ISLAND_NAMES.length; i++) {
+                const w = 85;
+                currentY = BASE_ISLAND_Y + (Math.random() * 50 - 25);
+                islands.push(new Island(currentX, currentY, w, ISLAND_NAMES[i]));
+                currentX += 140 + Math.random() * 40;
+            }
+        }
+
+        function drawSovereigntyLines() {
+            if (linePoints.length < 2) return;
+
+            ctx.save();
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.moveTo(linePoints[0].x, linePoints[0].y);
+            for (let i = 1; i < linePoints.length; i++) {
+                ctx.lineTo(linePoints[i].x, linePoints[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawCamera() {
+            const offsetX = Math.max(0, buffalo.x - 120);
+            ctx.save();
+            ctx.translate(-offsetX, 0);
+
+            // Biển ở đáy canvas
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(offsetX, V_HEIGHT - 60, V_WIDTH, 60);
+
+            drawSovereigntyLines();
+            islands.forEach(island => island.draw());
+            buffalo.draw();
+
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            ctx.fillStyle = '#075985';
+            ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+
+            if (gameState === 'PLAYING') {
+                buffalo.update();
+
+                if (isCharging && !buffalo.isJumping) {
+                    chargePower = Math.min(chargePower + 1.2, 60);
+                }
+
+                if (buffalo.isJumping) {
+                    islands.forEach((island, index) => {
+                        if (index > buffalo.onIslandIndex) {
+                            if (buffalo.x >= island.x && buffalo.x <= island.x + island.width &&
+                                buffalo.y + buffalo.radius >= island.y && buffalo.y - buffalo.radius <= island.y + 20) {
+                                
+                                buffalo.isJumping = false;
+                                buffalo.y = island.y - buffalo.radius;
+                                buffalo.vx = 0;
+                                buffalo.vy = 0;
+                                buffalo.onIslandIndex = index;
+                                island.hasFlag = true;
+                                score++;
+
+                                linePoints.push({x: island.x + island.width / 2, y: island.y});
+
+                                if (index === islands.length - 1) {
+                                    document.getElementById('victoryScreen').classList.remove('hidden');
+                                    gameState = 'VICTORY';
+                                }
+                            }
+                        }
+                    });
+
+                    if (buffalo.y > V_HEIGHT - 50) {
+                        gameState = 'GAMEOVER';
+                        document.getElementById('finalScore').innerText = score;
+                        document.getElementById('gameOverScreen').classList.remove('hidden');
+                    }
+                }
+
+                drawCamera();
+
+                if (isCharging) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(20, 20, 200, 20);
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillRect(20, 20, (chargePower / 60) * 200, 20);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeRect(20, 20, 200, 20);
+                }
+            } else if (gameState === 'START') {
+                drawCamera();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startCharging() {
+            if (gameState === 'PLAYING' && !buffalo.isJumping) {
+                isCharging = true;
+                chargePower = 10;
+            }
+        }
+
+        function releaseJump() {
+            if (gameState === 'PLAYING' && isCharging && !buffalo.isJumping) {
+                isCharging = false;
+                buffalo.jump(chargePower);
+            }
+        }
+
+        function startGame() {
+            buffalo.reset();
+            initIslands();
+            score = 0;
+            gameState = 'PLAYING';
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.add('hidden');
+        }
+
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') startCharging(); });
+        window.addEventListener('keyup', (e) => { if (e.code === 'Space') releaseJump(); });
+
+        canvas.addEventListener('mousedown', startCharging);
+        canvas.addEventListener('mouseup', releaseJump);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startCharging(); });
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); releaseJump(); });
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('victoryRestartBtn').addEventListener('click', startGame);
+
+        window.onload = () => {
+            initIslands();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
